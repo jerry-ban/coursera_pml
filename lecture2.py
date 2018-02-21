@@ -9,6 +9,7 @@
 
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
 
 import scipy as sp  # www.scipy.org, sci computing, statistics, optimization, linear algebra, math func
 import numpy as np # www.numpy.org, data structures used by skl, array is mostly used
@@ -61,4 +62,42 @@ ax.set_zlabel("color_score")
 plt.show()
 
 # K-Nearest Neighbors classification KNN
+# define 4 things: 1. distance metric 2. how many "nearest" neighbors 3. optional weighting func on neighbor points 4.
+#                   4.  method for aggregating the classes of neighbor points
 
+### import required modules and load data file
+
+X = fruits[["mass", "width", "height"]]
+y=fruits["fruit_label"]
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0) # random_state provide seed
+
+# create classifier object
+knn = KNeighborsClassifier(n_neighbors=5)
+
+# Train the classifier using the training data
+knn.fit(X_train,y_train)
+
+# Estimate the accuracy of the classifier on future data, using the test data
+knn.score(X_test, y_test)
+
+# using the trained k-NN classifier model to classify new, previously unseen bojects
+fruit_prediction = knn.predict([[20, 4.3, 5.5]])
+lookup_fruit_name[fruit_prediction[0]]
+
+# plot the decision boundaries of the k-NN classifer
+from adspy_shared_utilities import plot_fruit_knn
+plot_fruit_knn(X_train, y_train, 5, "uniform")
+
+
+# how sensitive is the k-NN classification accuracy to the choice of the "k" parameter value
+k_range=range(1,20)
+scores =[]
+for k in k_range:
+    knn = KNeighborsClassifier(n_neighbors=k)
+    knn.fit(X_train, y_train)
+    scores.append(knn.score(X_test, y_test))
+plt.figure()
+plt.xlabel("k")
+plt.ylabel("accuracy")
+plt.scatter(k_range, scores)
+plt.xticks([0,5,10,15,20])
