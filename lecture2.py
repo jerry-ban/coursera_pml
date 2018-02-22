@@ -22,7 +22,20 @@ import matplotlib.pyplot as plt
 import seaborn as sn
 
 #also graphviz plotting library
-import graphviz
+import graphvizod
+
+# Supervised learning methods overview
+
+# KNN make few assupmtions, can make potentially accurate but sometimes unstable predictions
+# Linear  models makes strong assumptions about data structure and give stable but potentially inaccurate predictions
+
+# model accuracy vs. model complexity from training & testing : always increasing vs. increasing then decreasing (normally)
+
+
+
+# overfitting and underfitting
+# model is too complex(variables) called overfit
+# model is too simple (less variable) called underfit
 
 fruit_file_txt = r"C:\_research\coursera_pml\fruit_data_with_colors.txt"
 fruits = pd.read_table(fruit_file_txt)
