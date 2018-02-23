@@ -316,7 +316,8 @@ print('Accuracy on training set: {:.2f}'.format(clf.score(X_train, y_train)))
 print('Accuracy on test set: {:.2f}'.format(clf.score(X_test, y_test)))
 
 # Classifier Margin: split 2 class, bigger(between 2 classes) the better
-# Max margin linear classifier: Linear Support Vector Machines
+# Max margin linear classifier: Linear Support Vector Machines,
+# decision boundary with max margin between classes using a (linear) classifier in the original/transformed feature space
 
 from sklearn.svm import SVC
 from adspy_shared_utilities import(plot_class_regions_for_classifier_subplot)
@@ -344,7 +345,9 @@ Cons: for lower-dimensional data, other models may have superior generalization 
 ### Kernelized support vector machines
 # transform current data to higher dimentional data and may easier to group
 """ radial basis function kernel(Gausian kerneal)
-
+the kernelized SVM can compute these more complex decision boundaries just in terms of similarity
+calculations between pairs of points in the high dimensional space where the transformed feature
+representation is implicit. This similarity function which mathematically is a kind of dot product is the kernel in kernelized
 """
 
 
