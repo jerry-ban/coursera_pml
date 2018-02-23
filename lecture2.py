@@ -277,3 +277,6 @@ linregpol = LinearRegression().fit(X_train, y_train)
 X_train, X_test, y_train, y_test = train_test_split(X_F1_poly, y_F1, random_state = 0)
 linridge = Ridge().fit(X_train, y_train)
 ["linreg", linridge.score(X_train, y_train), linridge.score(X_test, y_test)]
+
+
+### Logistic Regression
