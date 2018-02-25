@@ -284,7 +284,7 @@ linridge = Ridge().fit(X_train, y_train)
 
 
 
-
+### Logistic Regression
 # ## Linear models for classification
 # ### Logistic regression
 # #### Logistic regression for binary classification on fruits dataset using height, width features (positive class: apple, negative class: others)
