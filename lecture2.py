@@ -7,6 +7,10 @@
 # matplotlib 2.0.1
 # seaborn 0.7.1
 
+#import os
+#os.getcwd()
+#os.chdir(path)
+
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
@@ -279,4 +283,71 @@ linridge = Ridge().fit(X_train, y_train)
 ["linreg", linridge.score(X_train, y_train), linridge.score(X_test, y_test)]
 
 
-### Logistic Regression
+
+
+# ## Linear models for classification
+# ### Logistic regression
+# #### Logistic regression for binary classification on fruits dataset using height, width features (positive class: apple, negative class: others)
+
+from sklearn.linear_model import LogisticRegression
+from adspy_shared_utilities import (plot_class_regions_for_classifier_subplot)
+
+fig, subaxes = plt.subplots(1, 1, figsize=(7, 5))
+y_fruits_apple = y_fruits_2d == 1   # make into a binary problem: apples vs everything else
+X_train, X_test, y_train, y_test = (train_test_split(X_fruits_2d.as_matrix(), y_fruits_apple.as_matrix(), random_state = 0))
+
+# C is regularization, default is on, value =1.0, higher values means less regularizatio, and mormalization important
+clf = LogisticRegression(C=100).fit(X_train, y_train)
+plot_class_regions_for_classifier_subplot(clf, X_train, y_train, None, None, 'Logistic regression for binary classification\nFruit dataset: Apple vs others', subaxes)
+
+h = 6
+w = 8
+print('A fruit with height {} and width {} is predicted to be: {}'
+     .format(h,w, ['not an apple', 'an apple'][clf.predict([[h,w]])[0]]))
+
+h = 10
+w = 7
+print('A fruit with height {} and width {} is predicted to be: {}'
+     .format(h,w, ['not an apple', 'an apple'][clf.predict([[h,w]])[0]]))
+subaxes.set_xlabel('height')
+subaxes.set_ylabel('width')
+
+print('Accuracy on training set: {:.2f}'.format(clf.score(X_train, y_train)))
+print('Accuracy on test set: {:.2f}'.format(clf.score(X_test, y_test)))
+
+# Classifier Margin: split 2 class, bigger(between 2 classes) the better
+# Max margin linear classifier: Linear Support Vector Machines,
+# decision boundary with max margin between classes using a (linear) classifier in the original/transformed feature space
+
+from sklearn.svm import SVC
+from adspy_shared_utilities import(plot_class_regions_for_classifier_subplot)
+X_train, X_test, y_train, y_test = (train_test_split(X_C2, y_C2, random_state = 0))
+fig, subaxes = plt.subplots(1,1,figsize=(7,5))
+this_C=1.0 # regularization factor, larger C, less regularization(to fit training data as well as possible, indivisual data is important)
+clf=SVC(kernel="linear", C=this_C).fit(X_train, y_train)
+title="Linear SVC, C={:.3f}".format(this_C)
+plot_class_regions_for_classifier_subplot(clf, X_train, y_train, None, None, title, subaxes)
+
+""" Linear Models: Pros and Cons
+Pros: Simple and easy to train;
+        Fast to prediction
+        Scales well to very large datasets
+        works well with sparse data
+        Reasons for prediction are relatively easy to interpret
+Cons: for lower-dimensional data, other models may have superior generalization performance
+        for classification, data may not be linearly separable(more on this in SVM with no linear kernels)
+"""
+
+### multi-class classfication
+### 1 to all, namely if class1 or all else, if class 2 or all else, if class3 or all else,...choose the biggest chance
+
+
+### Kernelized support vector machines
+# transform current data to higher dimentional data and may easier to group
+""" radial basis function kernel(Gausian kerneal)
+the kernelized SVM can compute these more complex decision boundaries just in terms of similarity
+calculations between pairs of points in the high dimensional space where the transformed feature
+representation is implicit. This similarity function which mathematically is a kind of dot product is the kernel in kernelized
+"""
+
+
