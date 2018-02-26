@@ -11,20 +11,45 @@
 #os.getcwd()
 #os.chdir(path)
 
-from sklearn.model_selection import train_test_split
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.neighbors import KNeighborsClassifier
-
 import scipy as sp  # www.scipy.org, sci computing, statistics, optimization, linear algebra, math func
 import numpy as np # www.numpy.org, data structures used by skl, array is mostly used
 import pandas as pd # pandas.pydata.org key data structure: DataFrame, data manipulation
 
+from sklearn.datasets import make_classification, make_blobs
+from sklearn.datasets import load_breast_cancer
+from sklearn.datasets import make_regression
+from sklearn.datasets import make_friedman1
+from sklearn.datasets import make_classification
+from sklearn.datasets import load_iris
+
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.linear_model import Ridge
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.linear_model import Lasso
+from sklearn.preprocessing import minmax_scale
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
+from sklearn.model_selection import validation_curve
+from sklearn.tree import DecisionTreeClassifier
+
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
+
 import matplotlib as mpl  #matplotlib.org
 import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
 
 # sometime use seaborn visualizatio package: seaborn.pydata.org
 import seaborn as sn
 
+# adspy_shared_utilities is file coming with the class, should be under the same folder
+from adspy_shared_utilities import load_crime_dataset
+from adspy_shared_utilities import (plot_class_regions_for_classifier_subplot)
+from adspy_shared_utilities import(plot_class_regions_for_classifier)
+from adspy_shared_utilities import plot_decision_tree
+from adspy_shared_utilities import plot_feature_importances
 
 # Supervised learning methods overview
 
@@ -34,8 +59,6 @@ import seaborn as sn
 # Linear  models makes strong assumptions about data structure and give stable but potentially inaccurate predictions
 
 # model accuracy vs. model complexity from training & testing : always increasing vs. increasing then decreasing (normally)
-
-
 
 # overfitting and underfitting
 # model is too complex(variables) called overfit
@@ -238,7 +261,6 @@ r-squared training: {:.2f}, r-squared test: {:.2f}\n'
 ## only a few variables with medium/large effect: use lasso
 
 from sklearn.linear_model import Lasso
-from sklearn.preprocessing import minmax_scale
 scaler=MinMaxScaler()
 X_train, X_test, y_train, y_test = train_test_split(X_crime, y_crime,random_state = 0)
 X_train_scaled = scaler.fit_transform(X_train) #scal data according to range
@@ -350,4 +372,178 @@ calculations between pairs of points in the high dimensional space where the tra
 representation is implicit. This similarity function which mathematically is a kind of dot product is the kernel in kernelized
 """
 
+from sklearn.svm import SVC
+from adspy_shared_utilities import(plot_class_regions_for_classifier)
+X_train, X_test, y_train, y_test = (train_test_split(X_D2, y_D2, random_state = 0))
+plot_class_regions_for_classifier(SVC().fit(X_train, y_train), X_train, y_train, None, None, "SV CLassifier: RBF kernel")
 
+plot_class_regions_for_classifier(SVC(kernel="poly", degree =3).fit(X_train, y_train), X_train, y_train, None, None, "SV CLassifier: Poly(3) kernel")
+
+# RBF kernel has gamma parameters, exp(-gamma(x-x')2), Gamma controls how far the influence of
+# a single trending example reaches, which in turn affects how tightly the decision boundaries
+#  end up surrounding points in the input space.
+# Small gamma means a larger similarity radius. So that points farther apart are considered similar.
+# Which results in more points being group together and smoother decision boundaries.
+###***large gamma: more tight, complex boundary, each training point importance
+###***small C: more regularization, get larger margin for DB, even more point wrong labeled
+
+fig, subaxes = plt.subplots(1, 3, figsize=(11,4))
+
+for this_gamma, subplot in zip([0.01, 1.0,10.0], subaxes):
+    clf = SVC(kernel = "rbf", gamma = this_gamma).fit(X_train, y_train)
+    title = "Support Vector Classifier: RBF, gamma={:.2f}".format(this_gamma)
+    plot_class_regions_for_classifier_subplot(clf, X_train, y_train, None, None, title, subplot)
+
+plt.tight_layout()
+
+# SVMs also have a regularization parameter, C, to control the tradeoff between satisfying the max margin criterion
+#  to find the simple decision boundary, and avoiding misclassification errors on the training set.
+# The C parameter is also an important one for kernelized SVMs, and it interacts with the gamma parameter.
+
+# if gammma large, C little effect; gamma smaller and means more(tight) strict, C would be more alike linear classfier.
+# need tuned at the same time
+# kernelized kernel sensitive to gamma
+ig, subaxes = plt.subplots(3, 4, figsize=(15, 10), dpi=50)
+
+for this_gamma, this_axis in zip([0.01, 1, 5], subaxes):
+
+    for this_C, subplot in zip([0.1, 1, 15, 250], this_axis):
+        title = 'gamma = {:.2f}, C = {:.2f}'.format(this_gamma, this_C)
+        clf = SVC(kernel = 'rbf', gamma = this_gamma,
+                 C = this_C).fit(X_train, y_train)
+        plot_class_regions_for_classifier_subplot(clf, X_train, y_train,
+                                                 X_test, y_test, title,
+                                                 subplot)
+        plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
+
+# kernelized SVM: summary
+# Pros: Can perform well on a range of datasets
+#   versatile: different kernel functions can be specified, or custom kernels can be defined for specific data types
+# works well for both low and high-dimensional data
+
+# Cons: Efficiency(time/memory)  decreases as training size increase
+#   needs normalization of input data and parameter tuning
+#   does not provide direct probability estimates
+#   difficult to interpret why a prediction was made
+
+
+### cross validation
+# K-fold: commonly K=3/5/10; data split into 5 equal size, each is a fold, one fold is test, another is training set
+# default is 3, Stratified cross-validation, namey each fold contain a proportion of class the same as overall dataset.
+# thus all class would be fairly represented in test set.
+
+# sklearn uses regular k-fold CV since class proportion usually isnot relevant to common regression problems.
+# on extremet is leave-one-out-CV, means k=sample size of dataset, so each sample is a fold.
+# from sklearn.model_selection import cross_val_score
+clf = KNeighborsClassifier(n_neighbors=5)
+X=X_fruits_2d.as_matrix()
+y= list(y_fruits_2d["fruit_label"])
+cv_scores=cross_val_score(clf, X,y)
+np.mean(cv_scores)
+
+from sklearn.svm import SVC
+from sklearn.model_selection import validation_curve
+
+# validation curves show sensitivity to changes in an important parameter, this is to evaluate the model
+param_range = np.logspace(-3, 3, 4)
+train_scores, test_scores = validation_curve(SVC(), X, y, param_name='gamma', param_range=param_range, cv=3)
+plt.figure()
+
+train_scores_mean = np.mean(train_scores, axis=1)
+train_scores_std = np.std(train_scores, axis=1)
+test_scores_mean = np.mean(test_scores, axis=1)
+test_scores_std = np.std(test_scores, axis=1)
+
+plt.title('Validation Curve with SVM')
+plt.xlabel('$\gamma$ (gamma)')
+plt.ylabel('Score')
+plt.ylim(0.0, 1.1)
+lw = 2
+
+plt.semilogx(param_range, train_scores_mean, label='Training score', color='darkorange', lw=lw)
+
+plt.fill_between(param_range, train_scores_mean - train_scores_std,
+                train_scores_mean + train_scores_std, alpha=0.2,
+                color='darkorange', lw=lw)
+
+plt.semilogx(param_range, test_scores_mean, label='Cross-validation score',color='navy', lw=lw)
+
+plt.fill_between(param_range, test_scores_mean - test_scores_std,
+                test_scores_mean + test_scores_std, alpha=0.2,
+                color='navy', lw=lw)
+
+plt.legend(loc='best')
+plt.show()
+
+
+### Decision Tree
+# a number of mathematical ways to compute the best split, one criterion widely used for DT is called Information Game
+# leaf node can be pure/mixed
+# to prevent overfitting: stopping tree growth early(pre-pruning); build complete tree with pure leaves and prune back to a simplier form(Post Pruning)
+
+from sklearn.datasets import load_iris
+from sklearn.tree import DecisionTreeClassifier  #implemented by pre-pruning only, pars: max_depth/max_leaf_nodes, min_sample_leaf
+from adspy_shared_utilities import plot_decision_tree
+from sklearn.model_selection import train_test_split
+
+
+iris = load_iris()
+
+X_train, X_test, y_train, y_test = train_test_split(iris.data, iris.target, random_state = 3)
+clf = DecisionTreeClassifier().fit(X_train, y_train)
+
+print('Accuracy of Decision Tree classifier on training set: {:.2f}'.format(clf.score(X_train, y_train)))
+print('Accuracy of Decision Tree classifier on test set: {:.2f}'.format(clf.score(X_test, y_test)))
+
+clf2 = DecisionTreeClassifier(max_depth = 3).fit(X_train, y_train)
+print('Accuracy of Decision Tree classifier on training set: {:.2f}'.format(clf2.score(X_train, y_train)))
+print('Accuracy of Decision Tree classifier on test set: {:.2f}'.format(clf2.score(X_test, y_test)))
+plot_decision_tree(clf, iris.feature_names, iris.target_names)
+plot_decision_tree(clf2, iris.feature_names, iris.target_names)
+plt.show()
+
+# Feature Importance: how important is a feature to ovaerall prediction accuracy?
+# A number between 0/1 assigned to each feature
+# Feature importance of 0 => the feature was not used in prediction
+# Feature importance of 1=> the feature predictions the target perfectly
+# All feature importances are normallized to sum to 1
+
+from adspy_shared_utilities import plot_feature_importances
+plt.figure(figsize=(10,4))
+plot_feature_importances(clf, iris.feature_names)
+
+#less value of feature importance does not mean feature not important, jus not shown in early stage of tree, may identical/correlated with other informative feature
+# model specific, so use mean of multi train/test splits.
+
+from sklearn.tree import DecisionTreeClassifier
+from adspy_shared_utilities import plot_class_regions_for_classifier_subplot
+
+X_train, X_test, y_train, y_test = train_test_split(iris.data, iris.target, random_state = 0)
+fig, subaxes = plt.subplots(6, 1, figsize=(6, 32))
+
+pair_list = [[0,1], [0,2], [0,3], [1,2], [1,3], [2,3]]
+tree_max_depth = 4
+
+for pair, axis in zip(pair_list, subaxes):
+    X = X_train[:, pair]
+    y = y_train
+
+    clf = DecisionTreeClassifier(max_depth=tree_max_depth).fit(X, y)
+    title = 'Decision Tree, max_depth = {:d}'.format(tree_max_depth)
+    plot_class_regions_for_classifier_subplot(clf, X, y, None,
+                                             None, title, axis,
+                                             iris.target_names)
+
+    axis.set_xlabel(iris.feature_names[pair[0]])
+    axis.set_ylabel(iris.feature_names[pair[1]])
+
+plt.tight_layout()
+
+#Pros & Cons:
+"""
+Pros: easily visualized and interpreted
+      No feature normalization or scaling typically needed
+      Work well with datasets using a mixture of feature types(continus, categorical, binary)
+Cons: Even after tuning, DT can often still overfit
+      usually need an ensemble of trees for better generalization performance.
+"""
