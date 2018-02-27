@@ -142,7 +142,9 @@ knnreg = KNeighborsRegressor(n_neighbors = 5).fit(X_train, y_train)
 
 print(knnreg.predict(X_test))
 print('R-squared test score: {:.3f}'.format(knnreg.score(X_test, y_test)))
-# the R2 score here sometimes called "coefficient of determination", = 1- RSS/Total_sum_of_square, bigger better
+# the R2 score here sometimes called "coefficient of determination", = 1- RSS/Total_sum_of_square, bigger betterR
+# SS_res(Rss) = sum(y^_i-y_i)**2, SS_tot = sum(y_i - y_bar)**2
+# SS_reg = sum(y^_i-y_bar)**2, also called explained sum of squares
 
 fig, subaxes = plt.subplots(1, 2, figsize=(8,4))
 X_predict_input = np.linspace(-3, 3, 50).reshape(-1,1)
@@ -429,11 +431,11 @@ for this_gamma, this_axis in zip([0.01, 1, 5], subaxes):
 
 ### cross validation
 # K-fold: commonly K=3/5/10; data split into 5 equal size, each is a fold, one fold is test, another is training set
-# default is 3, Stratified cross-validation, namey each fold contain a proportion of class the same as overall dataset.
+# default is 3, Stratified cross-validation, namely each fold contain a proportion of class the same as overall dataset.
 # thus all class would be fairly represented in test set.
 
-# sklearn uses regular k-fold CV since class proportion usually isnot relevant to common regression problems.
-# on extremet is leave-one-out-CV, means k=sample size of dataset, so each sample is a fold.
+# sklearn uses regular k-fold CV since class proportion usually is not relevant to common regression problems.
+# one extreme is leave-one-out-CV, means k=sample size of dataset, so each sample is a fold.
 # from sklearn.model_selection import cross_val_score
 clf = KNeighborsClassifier(n_neighbors=5)
 X=X_fruits_2d.as_matrix()
@@ -445,7 +447,7 @@ from sklearn.svm import SVC
 from sklearn.model_selection import validation_curve
 
 # validation curves show sensitivity to changes in an important parameter, this is to evaluate the model
-param_range = np.logspace(-3, 3, 4)
+param_range = np.logspace(-3, 3, 4)  #[0.001, 0.1, 10, 1000]
 train_scores, test_scores = validation_curve(SVC(), X, y, param_name='gamma', param_range=param_range, cv=3)
 plt.figure()
 
@@ -508,6 +510,7 @@ plt.show()
 # Feature importance of 1=> the feature predictions the target perfectly
 # All feature importances are normallized to sum to 1
 
+# a classifer should have feature_importances_ property
 from adspy_shared_utilities import plot_feature_importances
 plt.figure(figsize=(10,4))
 plot_feature_importances(clf, iris.feature_names)
