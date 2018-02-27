@@ -300,13 +300,13 @@ def answer_six():
 
     # Your code here
     gammas=np.logspace(-4,1,6).tolist()
-    clf = SVC(kernel="rbf", C=1.0, random_state=0, gamma=gamma).fit(X_subset, y_subset)
+    clf = SVC(kernel="rbf", C=1.0, random_state=0).fit(X_subset, y_subset)
     scores_train, scores_test = validation_curve(clf, X_subset,y_subset, param_name="gamma", param_range=gammas, cv=3)
     scores_train_mean = np.mean(scores_train, axis = 1)
     scores_test_mean = np.mean(scores_test, axis = 1)
     return (scores_train_mean, scores_test_mean)# Your answer here
 
-#answer_six()
+answer_six()
 # ### Question 7
 # scores_train_array
 # Based on the scores from question 6, what gamma value corresponds to a model that is underfitting (and has the worst test set accuracy)? What gamma value corresponds to a model that is overfitting (and has the worst test set accuracy)? What choice of gamma would be the best choice for a model with good generalization performance on this dataset (high accuracy on both training and test set)? 
@@ -320,7 +320,7 @@ def answer_six():
 def answer_seven():
     
     # Your code here
-    #gammas=np.logspace(-4,1,6).tolist()
+    gammas=np.logspace(-4,1,6).tolist()
     #scores = answer_six()
     #best_i = scores[1].argmax()
     #under_i = scores[0].argmin()
