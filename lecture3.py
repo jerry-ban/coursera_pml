@@ -74,7 +74,7 @@ precision: TP/(TP+FP) =TP/ Forecased_P
 #either increase the number of true positives the classifier predicts
 # or reduce the number of errors where the classifier incorrectly predicts that a negative instance is in the positive
 """
-Specificity: = FP/(FP+TN)
+Specificity: = TN/(FP+TN)
 there is often tradeoff between predcision and recall
 high precision, low recall
 low precision, high recall: for medical case, tumor positive
@@ -110,5 +110,66 @@ y_probability_list
 
 #Precision-Recall & ROC Curves
 # ROC: Receiver Operating Characteristic Curve: widely used to illustrate the performance of a binary classifier.
+## ROC curve: TPR~FPR: TP/(TP+FN) ~ FP/(FP+TN) = 1- specificity
 # ROC-X: False Positive Rate, ROC-Y: True positive rate, ideal point is upper left.
 # AUC(area under curve) bigger, the better
+
+
+#Scikit-learn using scoring parameter for cross-validation
+from sklearn.metrics.scorer import SCORERS
+print ( sorted(list(SCORERS.keys())) )
+
+###CV example
+from sklearn.model_selection import cross_val_score
+from sklearn.svm import SVC
+
+dataset = load_digits()
+# again, making this a binary problem with 'digit 1' as positive class
+# and 'not 1' as negative class
+X, y = dataset.data, dataset.target == 1
+clf = SVC(kernel='linear', C=1)
+
+# accuracy is the default scoring metric
+print('Cross-validation (accuracy)', cross_val_score(clf, X, y, cv=5))
+# use AUC as scoring metric
+print('Cross-validation (AUC)', cross_val_score(clf, X, y, cv=5, scoring = 'roc_auc'))
+# use recall as scoring metric
+print('Cross-validation (recall)', cross_val_score(clf, X, y, cv=5, scoring = 'recall'))
+
+#grid search example
+from sklearn.svm import SVC
+from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import roc_auc_score
+
+dataset = load_digits()
+X, y = dataset.data, dataset.target == 1
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
+
+clf = SVC(kernel='rbf')
+grid_values = {'gamma': [0.001, 0.01, 0.05, 0.1, 1, 10, 100]}
+
+# default metric to optimize over grid parameters: accuracy
+grid_clf_acc = GridSearchCV(clf, param_grid = grid_values)
+grid_clf_acc.fit(X_train, y_train)
+y_decision_fn_scores_acc = grid_clf_acc.decision_function(X_test)
+
+print('Grid best parameter (max. accuracy): ', grid_clf_acc.best_params_)
+print('Grid best score (accuracy): ', grid_clf_acc.best_score_)
+
+# alternative metric to optimize over grid parameters: AUC
+grid_clf_auc = GridSearchCV(clf, param_grid = grid_values, scoring = 'roc_auc')
+grid_clf_auc.fit(X_train, y_train)
+y_decision_fn_scores_auc = grid_clf_auc.decision_function(X_test)
+
+print('Test set AUC: ', roc_auc_score(y_test, y_decision_fn_scores_auc))
+print('Grid best parameter (max. AUC): ', grid_clf_auc.best_params_)
+print('Grid best score (AUC): ', grid_clf_auc.best_score_)
+
+
+m= LogisticRegression(C=1.0, class_weight=None, dual=False, fit_intercept=True,
+          intercept_scaling=1, max_iter=100, multi_class='ovr', n_jobs=1,
+          penalty='l2', random_state=None, solver='liblinear', tol=0.0001,
+          verbose=0, warm_start=False)
+
+from sklearn.metrics import precision_recall_curve
+precision, recall, thresholds = precision_recall_curve(y_test, y_scores)
