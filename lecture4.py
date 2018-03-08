@@ -44,6 +44,11 @@ Pros:   Widely used, excellent prediction performance on many problems
         Easily paralleled across multiple CPUs
 Cons:   The resulting models are often difficult for humans to interpret
         may not be good for VERY HIGH-Dimensional tasks(text classifiers) compared to linear models(faster/accurate)
+Parameters:     n_estimators: number of trees, default =10
+                max_depth: tree depth
+                max_features: strong effect on performance, default works, tuning woreth
+                n_jobs: how many cores to use in parallel training
+                random_state: reproduce same result
 """
 
 
