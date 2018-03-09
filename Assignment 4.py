@@ -120,15 +120,6 @@
 import pandas as pd
 import numpy as np
 
-import seaborn as sn
-import matplotlib.pyplot as plt
-
-from sklearn.model_selection import train_test_split
-from sklearn.datasets import make_classification, make_blobs
-from matplotlib.colors import ListedColormap
-from sklearn.datasets import load_breast_cancer
-from adspy_shared_utilities import load_crime_dataset
-
 def blight_model():
     """test_raw = pd.read_csv("test.csv")
     test_cols = list(test_raw.columns)
@@ -140,6 +131,7 @@ def blight_model():
     #      convert disposition as categorical variable
 
     """
+    from sklearn.model_selection import train_test_split
 
     test_raw = pd.read_csv("test.csv")
     test_cols = list(test_raw.columns)
@@ -150,32 +142,38 @@ def blight_model():
     data_processed["same_address"] = data_processed['mailing_address_str_name'].str.lower() == data_processed['violation_street_name'].str.lower()
     value_cols = [ x for x in test_cols if x !="ticket_id"]
     data_X = data_processed[value_cols + ["same_address"]]
-    feature_cols = ["same_address",'fine_amount', 'admin_fee', 'state_fee', 'late_fee']
+
+    feature_cols = ['fine_amount', 'admin_fee', 'state_fee', 'late_fee', "same_address"]
     data_X = data_X[feature_cols]
     data_y = data_processed["compliance"]
     X_train, X_test, y_train, y_test = train_test_split(data_X, data_y, random_state=0)
     from sklearn.ensemble import RandomForestClassifier
-    grid_values = {"max_features": [1,2,3,4,5], "n_estimators" : [1,3, 10,30], "max_depth" : [1,2,3,4,5,6,7,8] }
-    clf_rfc =RandomForestClassifier(n_jobs = 5, max_depth = 10, n_estimators= 3)
-    clf_rfc.fit(X_train, y_train)
-    from sklearn.metrics import roc_auc_score
-    from sklearn.metrics import roc_curve, auc
+    # grid_values = {"max_features": list(range(1,len(feature_cols))), "n_estimators" : [1,5, 10,15], "max_depth" : [1,3,4,5,6,7,9,10] }
+    # clf_rfc = RandomForestClassifier(n_jobs = -1)
+    # from sklearn.model_selection import GridSearchCV
+    # grid_cv = GridSearchCV(clf_rfc, param_grid = grid_values, scoring = 'accuracy')
+    # grid_cv.fit(X_train, y_train)
+    # print('Grid best parameter (max. accuracy): ', grid_cv.best_params_)
+    #  # {'max_depth': 1, 'n_estimators': 10, 'max_features': 1}
+    # print('Grid best score (accuracy): ', grid_cv.best_score_) # 0.9287632390959887
+    # from sklearn.metrics import roc_auc_score
+    # from sklearn.metrics import roc_curve, auc
+    # y_score = grid_cv.predict(X_test)
+    # fpr, tpr, _ = roc_curve(y_test, y_score)
+    # roc_auc = auc(fpr, tpr)
+    # print(roc_auc) # 0.5057053941908713
 
-    grid_values = { "n_estimators" : [10], "max_depth" : [1,2,3,4,5] }
-    clf_rfc =RandomForestClassifier(n_jobs = -1)
-    grid_cv = GridSearchCV(clf_rfc, param_grid = grid_values, scoring = 'roc_auc')
-    grid_cv.fit(X_train, y_train)
+    clf_opt = RandomForestClassifier(max_depth=3,n_estimators=5, max_features=1) # len(feature_cols) = 5
+    #clf_opt = RandomForestClassifier(n_estimators=10, max_features=1, max_depth=1) # feature_cols = 4
+    #clf_opt = RandomForestClassifier(n_estimators=10, max_features=3, max_depth=7)
+    clf_opt.fit(X_train, y_train)
 
-    grid_cv.best_params_(X_test)
-    print('Grid best parameter (max. accuracy): ', grid_cv.best_params_)
-    print('Grid best score (accuracy): ', grid_cv.best_score_)
-
-    test_raw = test_raw.set_index('ticket_id')
     test_raw["same_address"] = test_raw['mailing_address_str_name'].str.lower() == test_raw['violation_street_name'].str.lower()
-    test_Data = test_raw[feature_cols]
-    X_predict = grid_cv.predict_proba(test_raw[feature_cols])
-    X_predict
-    result = pd.Series(data = X_predict[:,1], dtype='float32')
+    test_Data = test_raw[feature_cols + ["ticket_id"]]
+    test_Data.set_index("ticket_id", inplace = True)
+    X_predict = grid_cv.predict_proba(test_Data[feature_cols])
+    #X_predict
+    result = pd.Series(data = X_predict[:,1], index = test_Data.index, dtype='float32')
     result
     # Your code here
 
